@@ -1,0 +1,11 @@
+# Secrets
+.env
+
+# Data volumes (không backup bằng git)
+glpi-data/
+mariadb/data/
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

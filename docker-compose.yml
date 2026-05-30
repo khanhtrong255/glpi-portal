@@ -1,0 +1,98 @@
+# ============================================================
+# GLPI Docker Stack
+# Đường dẫn: /opt/docker-services/glpi/
+# ============================================================
+
+services:
+
+  # ----------------------------------------------------------
+  # MariaDB - Database
+  # ----------------------------------------------------------
+  mariadb:
+    image: mariadb:11.4
+    container_name: glpi_mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      TZ: ${TZ}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./mariadb/conf.d:/etc/mysql/conf.d:ro
+      - mariadb_logs:/var/log/mysql
+    networks:
+      - glpi_internal
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ----------------------------------------------------------
+  # GLPI - Application
+  # ----------------------------------------------------------
+  glpi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GLPI_VERSION: ${GLPI_VERSION}
+    image: glpi_app:${GLPI_VERSION}
+    container_name: glpi_app
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ}
+    volumes:
+      # Dữ liệu persistent ngoài webroot
+      - glpi_files:/var/glpi-data/files
+      - glpi_config:/var/glpi-data/config
+      # Plugins & Marketplace (mount trực tiếp để dễ quản lý)
+      - glpi_plugins:/var/www/glpi/plugins
+      - glpi_marketplace:/var/www/glpi/marketplace
+      # Apache logs ra host để tiện theo dõi
+      - ./logs/apache:/var/log/apache2
+    networks:
+      - glpi_internal
+      - proxy_network      # Kết nối với NPM
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+# ----------------------------------------------------------
+# Networks
+# ----------------------------------------------------------
+networks:
+  glpi_internal:
+    name: glpi_internal
+    driver: bridge
+    internal: true          # MariaDB không expose ra ngoài
+
+  proxy_network:
+    name: proxy_network
+    external: true          # Network của NPM đã tồn tại
+
+# ----------------------------------------------------------
+# Volumes
+# ----------------------------------------------------------
+volumes:
+  mariadb_data:
+    name: glpi_mariadb_data
+  mariadb_logs:
+    name: glpi_mariadb_logs
+  glpi_files:
+    name: glpi_files
+  glpi_config:
+    name: glpi_config
+  glpi_plugins:
+    name: glpi_plugins
+  glpi_marketplace:
+    name: glpi_marketplace

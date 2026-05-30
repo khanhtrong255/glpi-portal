@@ -1,0 +1,3 @@
+# GLPI Task Scheduler - chạy mỗi phút
+# Xử lý: gửi email, dọn session, SLA, notifications,...
+* * * * * www-data /usr/local/bin/php /var/www/glpi/front/cron.php --force > /dev/null 2>&1
