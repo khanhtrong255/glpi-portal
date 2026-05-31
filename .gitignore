@@ -9,3 +9,6 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# GLPI tarballs (tải về trước khi build)
+*.tgz
