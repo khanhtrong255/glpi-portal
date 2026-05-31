@@ -1,38 +1,30 @@
-# ============================================================
-# MariaDB - Tuning cho GLPI workload
-# File: mariadb/conf.d/glpi.cnf
-# ============================================================
-
 [mysqld]
-# --- Charset & Collation ---
 character-set-server     = utf8mb4
 collation-server         = utf8mb4_unicode_ci
 
-# --- InnoDB Performance ---
-innodb_buffer_pool_size  = 256M      # Tăng lên nếu RAM > 4GB (50-70% RAM)
+innodb_buffer_pool_size  = 256M
 innodb_log_file_size     = 64M
-innodb_flush_log_at_trx_commit = 2   # Cân bằng tốc độ/an toàn (dùng 1 nếu cần ACID cứng)
+innodb_flush_log_at_trx_commit = 2
 innodb_flush_method      = O_DIRECT
 
-# --- Query Cache (MariaDB có query cache tốt hơn MySQL) ---
+wait_timeout             = 3600
+interactive_timeout      = 3600
+net_read_timeout         = 600
+net_write_timeout        = 600
+
+max_allowed_packet       = 256M
+max_connections          = 100
+
 query_cache_type         = 1
 query_cache_size         = 32M
 query_cache_limit        = 2M
 
-# --- Connection ---
-max_connections          = 100
-wait_timeout             = 300
-interactive_timeout      = 300
+tmp_table_size           = 64M
+max_heap_table_size      = 64M
 
-# --- Logging ---
 slow_query_log           = 1
 slow_query_log_file      = /var/log/mysql/slow.log
 long_query_time          = 2
-
-# --- General ---
-max_allowed_packet       = 64M
-tmp_table_size           = 32M
-max_heap_table_size      = 32M
 
 [client]
 default-character-set    = utf8mb4
