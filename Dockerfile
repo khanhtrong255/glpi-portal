@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxml2-dev \
     libxslt1-dev \
     libonig-dev \
+    libbz2-dev \
     cron \
     unzip \
     wget \
@@ -42,7 +43,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         opcache \
         mbstring \
         exif \
-        fileinfo
+        fileinfo \
+        bcmath \
+        bz2
 
 # --- Cài PECL extensions ---
 RUN pecl install apcu \
